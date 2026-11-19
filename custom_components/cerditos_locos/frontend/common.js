@@ -1,11 +1,11 @@
 // Utilidades compartidas por la TV, el móvil y el panel de anfitrión.
+// Origen: Quiz del Salón (MIT), sin cambios salvo rutas y piezas propias del quiz.
 // Todo el texto se inserta con textContent: nunca se interpreta HTML recibido.
 
 export const WS_PATH = "/api/cerditos_locos/ws";
 export const QR_PATH = "/api/cerditos_locos/qr.svg";
 export const PLAY_PATH = "/cerditos_locos/play";
 export const TV_PATH = "/cerditos_locos/tv";
-export const LETTERS = ["A", "B", "C", "D"];
 
 /** Crea un elemento DOM de forma segura. */
 export function el(tag, props = {}, ...children) {
@@ -31,14 +31,6 @@ export function clear(node) {
   return node;
 }
 
-export function ordinal(n) {
-  return `${n}.º`;
-}
-
-export function points(n) {
-  return Number(n || 0).toLocaleString("es-ES");
-}
-
 export function joinUrl(base, code) {
   return `${base}${PLAY_PATH}?code=${encodeURIComponent(code)}`;
 }
@@ -50,28 +42,6 @@ export function qrSrc(url) {
 /** True si el host no sirve para que otros dispositivos se conecten. */
 export function isLoopbackHost(hostname) {
   return ["localhost", "127.0.0.1", "[::1]", "::1"].includes(hostname);
-}
-
-/** Fila de bombillas que hace de temporizador. */
-export function bulbTimer(count, seconds) {
-  const bulbs = el("div", { class: "bulbs", "aria-hidden": "true" });
-  for (let i = 0; i < count; i++) bulbs.append(el("span", { class: "bulb" }));
-  return el("div", { class: "timer-row", id: "timer", role: "timer", "aria-label": "Tiempo restante" },
-    bulbs, el("span", { class: "secs", id: "timer-n", text: seconds === null ? "" : String(seconds) }));
-}
-
-/** Enciende tantas bombillas como fracción de tiempo quede. Devuelve los segundos. */
-export function updateBulbTimer(countdown) {
-  const row = document.getElementById("timer");
-  if (!row) return null;
-  const bulbs = row.querySelectorAll(".bulb");
-  const lit = Math.ceil(countdown.fraction() * bulbs.length);
-  bulbs.forEach((b, i) => b.classList.toggle("off", i >= lit));
-  const s = countdown.seconds();
-  row.classList.toggle("hurry", s !== null && s <= 5 && s > 0);
-  const n = document.getElementById("timer-n");
-  if (n && n.textContent !== String(s ?? "")) n.textContent = String(s ?? "");
-  return s;
 }
 
 /** Cuenta atrás local sincronizada con el tiempo restante que manda el servidor. */
@@ -232,12 +202,19 @@ export class Sfx {
   tick() {
     this.tone(880, 0.06, 0, "square", 0.06);
   }
-  go() {
-    this.tone(523, 0.12, 0);
-    this.tone(784, 0.18, 0.1);
+  play() {
+    this.tone(523, 0.1, 0);
+    this.tone(784, 0.14, 0.08);
   }
-  reveal() {
-    [523, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.18, i * 0.08));
+  oink() {
+    this.tone(320, 0.09, 0, "sawtooth", 0.1);
+    this.tone(260, 0.12, 0.1, "sawtooth", 0.1);
+  }
+  neigh() {
+    [740, 520, 370].forEach((f, i) => this.tone(f, 0.12, i * 0.09, "square", 0.08));
+  }
+  turn() {
+    [523, 659, 784].forEach((f, i) => this.tone(f, 0.14, i * 0.07));
   }
   fanfare() {
     [392, 523, 659, 784, 659, 784, 1047].forEach((f, i) => this.tone(f, 0.22, i * 0.12, "sawtooth", 0.08));

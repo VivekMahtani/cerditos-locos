@@ -32,7 +32,7 @@ sys.path.insert(0, str(INTEGRATION))
 
 from game.engine import Settings  # noqa: E402
 from game.hub import MAX_MESSAGE_BYTES, Hub  # noqa: E402
-from game.questions import load_all  # noqa: E402
+from game.catalog import load_catalog  # noqa: E402
 from game.web import FRONTEND_DIR, QR_URL, SECURITY_HEADERS, STATIC_URL, WS_URL, load_pages, qr_svg_for  # noqa: E402
 
 GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
@@ -215,18 +215,28 @@ async def main() -> None:
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--base-url", default=None, help="URL base para el QR (p. ej. http://192.168.1.20:8765)")
-    parser.add_argument("--time-limit", type=int, default=20)
-    parser.add_argument("--questions", type=int, default=12)
-    parser.add_argument("--custom-dir", default=None)
+    parser.add_argument("--react-seconds", type=int, default=8)
+    parser.add_argument("--goal", type=int, default=0)
+    parser.add_argument("--save", default=None, help="archivo JSON para guardar y recuperar la partida")
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-    bank = load_all(INTEGRATION / "data" / "questions_es.json", Path(args.custom_dir) if args.custom_dir else None)
-    settings = Settings(num_questions=args.questions, time_limit=args.time_limit)
-    hub = Hub(bank, settings=settings, join_base=args.base_url, on_event=lambda n, d: log.info("evento %s %s", n, d))
+    catalog = load_catalog(INTEGRATION / "data" / "cards_es.json")
+    settings = Settings(goal=args.goal, react_seconds=args.react_seconds)
+    save_path = Path(args.save) if args.save else None
+
+    def on_save(snapshot):
+        if save_path:
+            save_path.write_text(json.dumps(snapshot), encoding="utf-8")
+
+    hub = Hub(catalog, settings=settings, join_base=args.base_url, on_save=on_save,
+              on_event=lambda n, d: log.info("evento %s %s", n, d))
+    if save_path and save_path.exists():
+        if hub.restore(json.loads(save_path.read_text(encoding="utf-8"))):
+            log.info("Partida recuperada de %s", save_path)
     await hub.start()
     server = DevServer(hub, load_pages(VERSION))
     srv = await asyncio.start_server(server.handle, args.host, args.port)
-    log.info("Cerditos Locos (dev) en http://%s:%d  — %d preguntas", args.host, args.port, len(bank.questions))
+    log.info("Cerditos Locos (dev) en http://%s:%d  — %d cartas en el mazo", args.host, args.port, catalog.deck_size())
     log.info("TV: /cerditos_locos/tv · Jugadores: /cerditos_locos/play · Anfitrión: /dev/host")
     async with srv:
         await srv.serve_forever()

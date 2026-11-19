@@ -685,9 +685,11 @@ def test_serialization_roundtrip(catalog, clock):
     assert all(not s.connected for s in g2.seats.values())
     for sid in g2.order:
         g2.set_connected(sid, True)
-    # Mismas semillas, misma continuación.
+    # Misma semilla y mismas jugadas: la partida restaurada termina igual que la original.
+    play_out(g, random.Random(1))
     play_out(g2, random.Random(1))
     assert g2.phase == Phase.FINISHED
+    assert (g2.winners, g2.turn, g2.end_reason, g2.log[-3:]) == (g.winners, g.turn, g.end_reason, g.log[-3:])
 
 
 def test_restore_rejects_unknown_cards(catalog, clock, game):

@@ -182,6 +182,32 @@ def install_stubs():
     _module("homeassistant.helpers.config_validation", config_entry_only_config_schema=lambda d: None)
     _module("homeassistant.helpers.typing", ConfigType=dict)
 
+    class Store:
+        """Doble de homeassistant.helpers.storage.Store guardado en memoria."""
+
+        disk: dict = {}
+
+        def __init__(self, hass, version, key):
+            self.version, self.key = version, key
+
+        def __class_getitem__(cls, item):
+            return cls
+
+        async def async_load(self):
+            return json.loads(json.dumps(Store.disk[self.key])) if self.key in Store.disk else None
+
+        async def async_save(self, data):
+            Store.disk[self.key] = json.loads(json.dumps(data))
+
+        async def async_remove(self):
+            Store.disk.pop(self.key, None)
+
+        def async_delay_save(self, data_func, delay=0):
+            REC.calls.append(("delay_save", self.key, delay))
+            Store.disk[self.key] = json.loads(json.dumps(data_func()))
+
+    _module("homeassistant.helpers.storage", Store=Store)
+
 
 class FakeHttp:
     def __init__(self):
@@ -281,7 +307,7 @@ def test_setup_views_panel_and_ws(integration):
         entry = sys.modules["homeassistant.config_entries"].ConfigEntry({CONF_LOCAL_ONLY: True, CONF_BASE_URL: ""})
         assert await integration.async_setup_entry(hass, entry)
         runtime = entry.runtime_data
-        assert runtime.hub.game.bank.questions
+        assert len(runtime.hub.game.catalog.cards) >= 20
         panel = [c for c in REC.calls if c[0] == "register_panel"][-1][1]
         assert panel["require_admin"] is True and panel["webcomponent_name"] == "cerditos-locos-panel"
         assert panel["module_url"].startswith("/cerditos_locos/static/panel.js")
@@ -333,11 +359,30 @@ def test_setup_views_panel_and_ws(integration):
         assert hass.bus.events and hass.bus.events[-1][0] == "cerditos_locos_event"
         assert hass.bus.events[-1][1]["type"] == "player_joined"
 
+        # Persistencia: la partida en curso sobrevive a recargar la integración
+        runtime.hub.game.add_player("Beto")
+        runtime.hub.game.start()
+        await runtime.hub.broadcast()
+        assert any(c[0] == "delay_save" for c in REC.calls)
+        turn = runtime.hub.game.turn
+        active = runtime.hub.game.active
+
         # Descarga limpia
         assert await integration.async_unload_entry(hass, entry)
         assert ("remove_panel", "cerditos-locos") in REC.calls
         resp = await page_view.get(FakeRequest())
         assert resp.status == 503
+
+        entry2 = sys.modules["homeassistant.config_entries"].ConfigEntry({CONF_LOCAL_ONLY: True, CONF_BASE_URL: ""})
+        assert await integration.async_setup_entry(hass, entry2)
+        game2 = entry2.runtime_data.hub.game
+        assert game2.phase.value == "playing" and game2.turn == turn and game2.active == active
+        assert {s.name for s in game2.seats.values()} == {"Ana", "Beto"}
+        assert await integration.async_unload_entry(hass, entry2)
+        store_cls = sys.modules["homeassistant.helpers.storage"].Store
+        assert "cerditos_locos.partida" in store_cls.disk
+        await integration.async_remove_entry(hass, entry2)
+        assert "cerditos_locos.partida" not in store_cls.disk
 
         # Flujo de configuración y opciones
         flow = CerditosLocosConfigFlow()

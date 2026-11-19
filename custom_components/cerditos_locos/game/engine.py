@@ -1224,8 +1224,6 @@ class Game:
         if data.get("v") != 1:
             raise ValueError("Versión de estado desconocida")
         rng = random.Random()
-        r = data["rng"]
-        rng.setstate((r[0], tuple(r[1]), r[2]))
         game = cls(catalog, clock, rng=rng, settings=Settings(**data["settings"]))
         for c in set(data["cards"].values()):
             if c not in catalog.cards:
@@ -1261,6 +1259,9 @@ class Game:
         game.end_reason = data["end_reason"]
         game.log = list(data["log"])
         game._log_seq = data["log_seq"]
+        # Al final: el constructor ya ha consumido números aleatorios (código de sala).
+        r = data["rng"]
+        rng.setstate((r[0], tuple(r[1]), r[2]))
         if game.phase == Phase.PLAYING:
             game.check_invariants()
         return game

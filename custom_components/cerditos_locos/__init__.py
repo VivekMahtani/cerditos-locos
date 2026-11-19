@@ -1,4 +1,4 @@
-"""Cerditos Locos: juego de preguntas multijugador local para Home Assistant."""
+"""Cerditos Locos: juego de cartas multijugador local para Home Assistant."""
 
 from __future__ import annotations
 
@@ -12,12 +12,12 @@ from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.storage import Store
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
     CONF_BASE_URL,
     CONF_LOCAL_ONLY,
-    CUSTOM_QUESTIONS_DIR,
     DATA_GLOBAL,
     DEFAULT_LOCAL_ONLY,
     DOMAIN,
@@ -26,11 +26,14 @@ from .const import (
     PANEL_ELEMENT,
     PANEL_ICON,
     PANEL_URL_PATH,
+    SAVE_DELAY_S,
+    STORAGE_KEY,
+    STORAGE_VERSION,
     VERSION,
 )
 from .game.hub import Hub
 from .game.netutil import normalize_base_url
-from .game.questions import load_all
+from .game.catalog import load_catalog
 from .game.web import FRONTEND_DIR, STATIC_URL, load_pages
 from .ha_websocket import async_register_commands
 from .http_views import CerditosPageView, CerditosQrView, CerditosWebSocketView
@@ -38,7 +41,7 @@ from .http_views import CerditosPageView, CerditosQrView, CerditosWebSocketView
 _LOGGER = logging.getLogger(__name__)
 
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
-BUILTIN_QUESTIONS = Path(__file__).parent / "data" / "questions_es.json"
+CATALOG_PATH = Path(__file__).parent / "data" / "cards_es.json"
 
 
 @dataclass
@@ -47,6 +50,7 @@ class CerditosRuntime:
 
     hub: Hub
     local_only: bool
+    store: Store[dict[str, Any]]
 
 
 type CerditosConfigEntry = ConfigEntry[CerditosRuntime]
@@ -79,19 +83,28 @@ def _apply_options(runtime: CerditosRuntime, entry: ConfigEntry) -> None:
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: CerditosConfigEntry) -> bool:
-    """Crea el hub de juego y el panel de anfitrión."""
-    custom_dir = Path(hass.config.path(CUSTOM_QUESTIONS_DIR))
-    bank = await hass.async_add_executor_job(load_all, BUILTIN_QUESTIONS, custom_dir)
-    for warning in bank.warnings:
-        _LOGGER.warning("Preguntas: %s", warning)
-    _LOGGER.info("Cerditos Locos: %d preguntas cargadas", len(bank.questions))
+    """Crea el hub de juego, recupera la partida guardada y registra el panel."""
+    catalog = await hass.async_add_executor_job(load_catalog, CATALOG_PATH)
+    for warning in catalog.warnings:
+        _LOGGER.warning("Cartas: %s", warning)
+
+    store: Store[dict[str, Any]] = Store(hass, STORAGE_VERSION, STORAGE_KEY)
+    latest: dict[str, Any] = {}
 
     @callback
     def _on_event(name: str, data: dict[str, Any]) -> None:
         hass.bus.async_fire(EVENT_NAME, {"type": name, **data, **hub.game.summary()})
 
-    hub = Hub(bank, on_event=_on_event)
-    runtime = CerditosRuntime(hub=hub, local_only=DEFAULT_LOCAL_ONLY)
+    @callback
+    def _on_save(snapshot: dict[str, Any]) -> None:
+        latest["data"] = snapshot
+        store.async_delay_save(lambda: latest["data"], SAVE_DELAY_S)
+
+    hub = Hub(catalog, on_event=_on_event, on_save=_on_save)
+    saved = await store.async_load()
+    if saved and hub.restore(saved):
+        _LOGGER.info("Cerditos Locos: partida recuperada (%s)", hub.game.phase.value)
+    runtime = CerditosRuntime(hub=hub, local_only=DEFAULT_LOCAL_ONLY, store=store)
     _apply_options(runtime, entry)
     entry.runtime_data = runtime
     hass.data[DATA_GLOBAL]["runtime"] = runtime
@@ -122,6 +135,13 @@ async def _async_options_updated(hass: HomeAssistant, entry: CerditosConfigEntry
 async def async_unload_entry(hass: HomeAssistant, entry: CerditosConfigEntry) -> bool:
     """Detiene el temporizador, cierra conexiones y quita el panel."""
     frontend.async_remove_panel(hass, PANEL_URL_PATH)
-    await entry.runtime_data.hub.stop()
+    runtime = entry.runtime_data
+    await runtime.store.async_save(runtime.hub.snapshot())
+    await runtime.hub.stop()
     hass.data[DATA_GLOBAL]["runtime"] = None
     return True
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: CerditosConfigEntry) -> None:
+    """Al eliminar la integración, borra la partida guardada (nombres y cartas)."""
+    await Store(hass, STORAGE_VERSION, STORAGE_KEY).async_remove()

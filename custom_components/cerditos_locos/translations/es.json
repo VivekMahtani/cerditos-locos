@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Cerditos Locos",
-        "description": "Añade el juego de preguntas multijugador local. Aparecerá un panel en la barra lateral para el anfitrión."
+        "description": "Añade el juego de cartas multijugador local. Aparecerá un panel en la barra lateral para el anfitrión."
       }
     },
     "abort": {

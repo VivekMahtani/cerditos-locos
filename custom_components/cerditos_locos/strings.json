@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Cerditos Locos",
-        "description": "Add the local multiplayer quiz. A sidebar panel will appear for the host."
+        "description": "Add the local multiplayer card game. A sidebar panel will appear for the host."
       }
     },
     "abort": {
