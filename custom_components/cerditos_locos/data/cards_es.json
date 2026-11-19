@@ -1,0 +1,227 @@
+{
+  "version": 1,
+  "language": "es",
+  "license": "CC BY-SA 4.0 — textos e ideas originales de Cerditos Locos",
+  "cards": [
+    {
+      "id": "lechon",
+      "name": "Lechón",
+      "type": "baby",
+      "copies": 8,
+      "art": "lechon",
+      "text": "Empieza en tu pocilga. Si sale de ella, vuelve al corral."
+    },
+
+    {"id": "cerdo_rosado", "name": "Cerdo Rosado", "type": "pig", "copies": 5, "art": "rosado", "text": "Un cerdo de toda la vida."},
+    {"id": "cerdo_manchado", "name": "Cerdo Manchado", "type": "pig", "copies": 5, "art": "manchado", "text": "Tiene una mancha con forma de patata."},
+    {"id": "cerdo_rizado", "name": "Cerdo Rizado", "type": "pig", "copies": 5, "art": "rizado", "text": "El rabo más rizado de la comarca."},
+    {"id": "cerda_coqueta", "name": "Cerda Coqueta", "type": "pig", "copies": 5, "art": "coqueta", "text": "Nunca sale sin su lazo."},
+
+    {
+      "id": "cerdo_gloton",
+      "name": "Cerdo Glotón",
+      "type": "magic_pig",
+      "copies": 2,
+      "art": "gloton",
+      "text": "Al entrar en tu pocilga, roba 1 carta.",
+      "triggers": [{"when": "enter", "do": [{"op": "draw", "n": 1}]}]
+    },
+    {
+      "id": "jabali_grunon",
+      "name": "Jabalí Gruñón",
+      "type": "magic_pig",
+      "copies": 2,
+      "art": "jabali",
+      "text": "Al entrar en tu pocilga, puedes espantar un cerdo de otra pocilga.",
+      "triggers": [{"when": "enter", "optional": true,
+        "do": [{"op": "scare", "target": {"owner": "other", "kinds": ["baby", "pig", "magic_pig"]}}]}]
+    },
+    {
+      "id": "cerda_comadrona",
+      "name": "Cerda Comadrona",
+      "type": "magic_pig",
+      "copies": 2,
+      "art": "comadrona",
+      "text": "Al inicio de tu turno, puedes traer un lechón del corral a tu pocilga.",
+      "triggers": [{"when": "turn_start", "optional": true, "do": [{"op": "bring_baby"}]}]
+    },
+    {
+      "id": "cerdo_guardian",
+      "name": "Cerdo Guardián",
+      "type": "magic_pig",
+      "copies": 2,
+      "art": "guardian",
+      "text": "Tus otros cerdos no pueden ser espantados.",
+      "static": [{"mod": "protect", "from": "scare", "scope": "others"}]
+    },
+    {
+      "id": "cerdo_carterista",
+      "name": "Cerdo Carterista",
+      "type": "magic_pig",
+      "copies": 2,
+      "art": "carterista",
+      "text": "Al entrar en tu pocilga, elige a un rival y quédate una carta de su mano al azar.",
+      "triggers": [{"when": "enter",
+        "do": [{"op": "choose_player", "filter": "other_with_hand"}, {"op": "take_random_hand"}]}]
+    },
+    {
+      "id": "cerdo_tamborilero",
+      "name": "Cerdo Tamborilero",
+      "type": "magic_pig",
+      "copies": 2,
+      "art": "tamborilero",
+      "text": "Al entrar en tu pocilga, cada rival descarta 1 carta.",
+      "triggers": [{"when": "enter", "do": [{"op": "discard", "who": "others", "n": 1}]}]
+    },
+    {
+      "id": "cerdo_trufero",
+      "name": "Cerdo Trufero",
+      "type": "magic_pig",
+      "copies": 2,
+      "art": "trufero",
+      "text": "Al entrar en tu pocilga, busca una trastada en el mazo y llévatela a la mano.",
+      "triggers": [{"when": "enter", "do": [{"op": "search_deck", "kinds": ["trick"]}]}]
+    },
+    {
+      "id": "cerdo_dormilon",
+      "name": "Cerdo Dormilón",
+      "type": "magic_pig",
+      "copies": 2,
+      "art": "dormilon",
+      "text": "Ocupa tanto que cuenta como dos cerdos.",
+      "static": [{"mod": "counts_as", "value": 2}]
+    },
+
+    {
+      "id": "bano_de_barro",
+      "name": "Baño de barro",
+      "type": "trick",
+      "copies": 2,
+      "art": "barro",
+      "text": "Un cerdo de cualquier pocilga vuelve a la mano de su dueño.",
+      "triggers": [{"when": "play", "do": [{"op": "return_to_hand", "target": {"owner": "any", "kinds": ["baby", "pig", "magic_pig"]}}]}]
+    },
+    {
+      "id": "cerca_abierta",
+      "name": "Cerca abierta",
+      "type": "trick",
+      "copies": 2,
+      "art": "cerca",
+      "text": "Llévate a tu pocilga un cerdo normal de otra pocilga.",
+      "triggers": [{"when": "play", "do": [{"op": "steal_pig", "target": {"owner": "other", "kinds": ["pig"]}}]}]
+    },
+    {
+      "id": "mercadillo",
+      "name": "Mercadillo",
+      "type": "trick",
+      "copies": 2,
+      "art": "mercadillo",
+      "text": "Elige a un rival: quédate una carta de su mano al azar y luego dale una de las tuyas.",
+      "triggers": [{"when": "play", "do": [
+        {"op": "choose_player", "filter": "other_with_hand"},
+        {"op": "take_random_hand"},
+        {"op": "give_card"}
+      ]}]
+    },
+    {
+      "id": "que_se_escapan",
+      "name": "¡Que se escapan!",
+      "type": "trick",
+      "copies": 2,
+      "art": "escapan",
+      "text": "Espanta un cerdo de otra pocilga.",
+      "triggers": [{"when": "play", "do": [{"op": "scare", "target": {"owner": "other", "kinds": ["baby", "pig", "magic_pig"]}}]}]
+    },
+    {
+      "id": "limpieza_general",
+      "name": "Limpieza general",
+      "type": "trick",
+      "copies": 2,
+      "art": "limpieza",
+      "text": "Retira un chollo o un fastidio de cualquier pocilga.",
+      "triggers": [{"when": "play", "do": [{"op": "remove", "target": {"owner": "any", "kinds": ["perk", "pest"]}}]}]
+    },
+    {
+      "id": "siesta",
+      "name": "Siesta en el pajar",
+      "type": "trick",
+      "copies": 2,
+      "art": "siesta",
+      "text": "Roba 2 cartas.",
+      "triggers": [{"when": "play", "do": [{"op": "draw", "n": 2}]}]
+    },
+
+    {
+      "id": "charca",
+      "name": "Charca de barro",
+      "type": "perk",
+      "copies": 2,
+      "art": "charca",
+      "text": "En tu fase de robo, robas 1 carta más.",
+      "static": [{"mod": "draw_bonus", "value": 1}]
+    },
+    {
+      "id": "comedero",
+      "name": "Comedero XXL",
+      "type": "perk",
+      "copies": 2,
+      "art": "comedero",
+      "text": "Tu límite de mano aumenta en 2.",
+      "static": [{"mod": "hand_limit", "value": 2}]
+    },
+    {
+      "id": "valla_nueva",
+      "name": "Valla nueva",
+      "type": "perk",
+      "copies": 2,
+      "art": "valla",
+      "text": "Nadie puede llevarse cerdos de tu pocilga.",
+      "static": [{"mod": "protect", "from": "steal", "scope": "all"}]
+    },
+
+    {
+      "id": "nube_moscas",
+      "name": "Nube de moscas",
+      "type": "pest",
+      "copies": 2,
+      "art": "moscas",
+      "text": "No puedes jugar cartas de réplica.",
+      "static": [{"mod": "no_react"}]
+    },
+    {
+      "id": "valla_rota",
+      "name": "Valla rota",
+      "type": "pest",
+      "copies": 2,
+      "art": "valla_rota",
+      "text": "Al inicio de tu turno, descarta 1 carta.",
+      "triggers": [{"when": "turn_start", "do": [{"op": "discard", "who": "self", "n": 1}]}]
+    },
+    {
+      "id": "barro_pegajoso",
+      "name": "Barro pegajoso",
+      "type": "pest",
+      "copies": 2,
+      "art": "pegajoso",
+      "text": "No puedes jugar trastadas.",
+      "static": [{"mod": "no_play", "kinds": ["trick"]}]
+    },
+
+    {
+      "id": "ni_hablar",
+      "name": "¡Ni hablar!",
+      "type": "neigh",
+      "copies": 8,
+      "art": "ni_hablar",
+      "text": "Anula la carta que otro jugador acaba de jugar. Se puede replicar."
+    },
+    {
+      "id": "ni_hablar_punto",
+      "name": "¡Ni hablar, y punto!",
+      "type": "super_neigh",
+      "copies": 2,
+      "art": "ni_hablar_punto",
+      "text": "Anula la carta que otro jugador acaba de jugar. No se puede replicar."
+    }
+  ]
+}
