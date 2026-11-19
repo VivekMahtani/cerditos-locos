@@ -157,8 +157,10 @@ function renderTable() {
     pens.append(el("article", { class: `pen${p.id === state.active ? " active" : ""}${p.connected ? "" : " off"}`, "data-id": p.id },
       el("header", {},
         el("span", { class: "ava", text: p.avatar }),
-        el("span", { class: "who" }, el("span", { class: "nm", text: p.name }), tag, pigMeter(p.pigs, state.goal)),
-        el("span", { class: "hand", title: "Cartas en la mano", text: `🂠 ${p.hand_count}` }),
+        el("span", { class: "who" },
+          el("span", { class: "nm", text: p.name }),
+          el("span", { class: "line" }, el("span", { class: "handcount", title: "Cartas en la mano", text: `🂠 ${p.hand_count}` }), tag),
+          pigMeter(p.pigs, state.goal)),
         el("span", { class: "count", text: String(p.pigs) })),
       cards));
   }

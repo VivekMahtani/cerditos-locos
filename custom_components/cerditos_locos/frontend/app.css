@@ -143,12 +143,13 @@ body.tv { overflow: hidden; height: 100vh; font-size: 2vh; }
 .pen.off { opacity: 0.55; }
 .pen header { display: flex; align-items: center; gap: 1vh; }
 .pen header .ava { font-size: 4.4vh; line-height: 1; }
-.pen header .who { display: flex; flex-direction: column; min-width: 0; margin-right: auto; }
+.pen header .who { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; margin-right: auto; }
 .pen header .nm { font-family: var(--display); font-size: 2.6vh; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pen header .tag { font-size: 1.5vh; font-weight: 700; color: var(--sun); }
 .pen header .tag.off { color: var(--tomato); }
 .pen header .count { font-family: var(--display); font-size: 4vh; color: var(--pink); line-height: 1; }
-.pen header .hand { font-size: 1.7vh; background: var(--mud-3); border-radius: 99px; padding: 0.3vh 1vh; white-space: nowrap; }
+.pen header .line { display: flex; align-items: center; gap: 0.8vh; margin: 0.2vh 0; }
+.pen header .handcount { font-size: 1.6vh; background: var(--mud-3); border-radius: 99px; padding: 0.1vh 0.9vh; white-space: nowrap; }
 .pen .meter { font-size: 2vh; }
 .pen .cards { display: flex; flex-wrap: wrap; gap: 0.8vh; align-content: flex-start; overflow: hidden; }
 .pen .card.mini { width: 11vh; font-size: 2.4vh; }

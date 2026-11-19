@@ -193,6 +193,8 @@ class Game:
         return f"{prefix}{self._id_counter}"
 
     def say(self, text: str) -> None:
+        if text.endswith(("!.", "?.")):  # «… con ¡Ni hablar!.» → «… con ¡Ni hablar!»
+            text = text[:-1]
         self._log_seq += 1
         self.log.append({"n": self._log_seq, "text": text})
         del self.log[:-LOG_KEEP]
