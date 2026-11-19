@@ -171,7 +171,7 @@ Documentación técnica: [reglas y diseño](docs/game-design.md), [arquitectura]
 ## Licencia
 
 - **Código:** MIT (ver `LICENSE`). Partes de la infraestructura proceden de [Quiz del Salón](https://github.com/VivekMahtani/quiz-salon), del mismo autor y con la misma licencia.
-- **Cartas** (nombres, textos e ilustraciones SVG generadas por código): CC BY-SA 4.0.
+- **Cartas e icono** (nombres, textos, ilustraciones SVG generadas por código y `brand/`): CC BY-SA 4.0.
 - **Tipografías:** [Bungee](https://github.com/djrrb/Bungee) y [Lexend](https://github.com/googlefonts/lexend), SIL Open Font License 1.1 (textos en `custom_components/cerditos_locos/frontend/fonts/`).
 
 «Cerditos Locos» es un proyecto independiente, no oficial y sin relación con Unstable Games. Antes de cualquier uso comercial conviene hacer una búsqueda de marcas sobre el nombre y una revisión legal profesional.

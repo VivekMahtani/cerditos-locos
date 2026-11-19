@@ -14,3 +14,4 @@ Primera versión jugable.
 - Evento `cerditos_locos_event` para automatizaciones.
 - Bots y simulación masiva (`dev/simulate.py`), servidor de desarrollo y prueba de extremo a extremo con Playwright.
 - Infraestructura (QR, red, hub, capa de HA) adaptada de Quiz del Salón.
+- Icono propio en `brand/` (Home Assistant 2026.3 o posterior lo muestra en la lista de integraciones).
